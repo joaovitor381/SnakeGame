@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake Game</title>
+    <style>
+      img {
+        width: 16px;
+        height: 16px;
+      }
+      div {
+        width: 320px;
+        font-size: 0;
+      }
+    </style>
+    <script>
+      let interval;
+      let food = { x: 15, y: 15 };
+      let p = { x: 3, y: 3 };
+      let snake = [{ x: 2, y: 2, body: 14 }];
+      let cenario = [3, 11, 11, 14];
+
+      let pieces = {
+        0: "board.png",
+        1: "apple.png",
+        2: "border.png",
+        3: "tail_left.png",
+        4: "tail_right.png",
+        5: "tail_up.png",
+        6: "tail_down.png",
+        7: "body_bottomleft.png",
+        8: "body_bottomright.png",
+        9: "body_topleft.png",
+        10: "body_topright.png",
+        11: "body_horizontal.png",
+        12: "body_vertical.png",
+        13: "head_left.png",
+        14: "head_right.png",
+        15: "head_up.png",
+        16: "head_down.png",
+      };
+
+      let key = "ArrowRight";
+      let speed = 150;
+      let moves = {
+        ArrowLeft: { x: -1, y: 0, body: 13, invalid: "ArrowRight" },
+        ArrowRight: { x: 1, y: 0, body: 14, invalid: "ArrowLeft" },
+        ArrowUp: { x: 0, y: -1, body: 15, invalid: "ArrowDown" },
+        ArrowDown: { x: 0, y: 1, body: 16, invalid: "ArrowUp" },
+      };
+      let points = 1;
+      let board;
+
+      let show = () => {
+        board = Array.from({ length: 20 }, (e, i1) =>
+          Array.from({ length: 20 }, (e, i2) =>
+            i1 > 0 && i1 < 19 && i2 > 0 && i2 < 19 ? 0 : 2
+          )
+        );
+        board[food.y][food.x] = 1;
+        // board[p.y][p.x] = 14;
+        snake.forEach((e) => (board[e.y][e.x] = e.body));
+        document.getElementById("idBoard").innerHTML = board
+          .flat()
+          .map((e) => `<img src = "img/${pieces[e]}"/>`)
+          .join("");
+      };
+
+      let move = () => {
+        p.x += moves[key]?.x || 0;
+        p.y += moves[key]?.y || 0;
+
+        if (board[p.y][p.x] > 1) {
+          alert("Game Over");
+          window.clearInterval(interval);
+          return;
+        }
+        snake.unshift({ x: p.x, y: p.y, body: moves[key]?.body });
+        if (snake.length > 2) {
+          let x = snake[0].x - snake[2].x;
+          let y = snake[0].y - snake[2].y;
+          if (x == 0) snake[1].body = 12;
+          else if (y == 0) snake[1].body = 11;
+          else if (x > 0) {
+            if (snake[1].y > snake[2].y) snake[1].body = 10;
+            else if (snake[1].y < snake[2].y) snake[1].body = 8;
+            else {
+              if (snake[1].y > snake[0].y) snake[1].body = 9;
+              else snake[1].body = 7;
+            }
+          } else {
+            if (snake[1].y > snake[2].y) snake[1].body = 9;
+            else if (snake[1].y < snake[2].y) snake[1].body = 7;
+            else {
+              if (snake[1].y > snake[0].y) snake[1].body = 10;
+              else snake[1].body = 8;
+            }
+          }
+        }
+
+        if (board[p.y][p.x] == 1) {
+          document.getElementById("idPoints").innerHTML = ++points;
+
+          while (true) {
+            food.x = parseInt(Math.random() * 18) + 1;
+            food.y = parseInt(Math.random() * 18) + 1;
+            if (board[food.y][food.x] == 0) break;
+          }
+
+          if (snake.length < 10) speed = speed * 0.97;
+          else if (snake.length < 20) speed = speed * 0.98;
+          else speed = speed * 0.99;
+          window.clearInterval(interval);
+          interval = window.setInterval(move, parseInt(speed));
+        } else {
+          snake.pop();
+        }
+
+        let len = snake.length;
+        if (len > 1) {
+          let x = snake[len - 1].x - snake[len - 2].x;
+          let y = snake[len - 1].y - snake[len - 2].y;
+          if (x > 0) snake[len - 1].body = 4;
+          else if (x < 0) snake[len - 1].body = 3;
+          else if (y > 0) snake[len - 1].body = 6;
+          else snake[len - 1].body = 5;
+        }
+
+        show();
+      };
+
+      let setKey = (e) => {
+        if (moves[e.key] && moves[key].invalid != e.key) key = e.key;
+      };
+
+      document.addEventListener("keydown", setKey);
+      interval = window.setInterval(move, parseInt(speed));
+    </script>
+  </head>
+  <body onload="show()">
+    <p>Points: <span id="idPoints">0</span></p>
+    <div id="idBoard"></div>
+  </body>
+</html>
